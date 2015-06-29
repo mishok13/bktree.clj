@@ -1,6 +1,8 @@
 (ns me.mishok13.bktree
   (:refer-clojure :exclude [find]))
 
+(declare make-tree)
+
 (defn levenstein-distance
   "Calculate Levenstein distance using Wagner-Fischer algorithm"
   [s t]
@@ -33,10 +35,17 @@
 (defrecord BKTree [^String value leafs]
   ITree
   (insert [this s]
-    (let [distance (levenstein-distance (:value this) s)]
-      (if-let [leaf (get leafs distance)]
-        (assoc-in this [:leafs distance] (insert leaf s))
-        (assoc-in this [:leafs distance] (->BKTree s {})))))
+    (if (nil? value)
+      ;; Empty node, can insert immediately
+      (assoc this
+             :value s
+             :leafs {})
+      (let [distance (levenstein-distance value s)]
+        (if-let [leaf (get leafs distance)]
+          (assoc-in this [:leafs distance] (insert leaf s))
+          (assoc-in this [:leafs distance] (make-tree s))))))
+  (children [this]
+    (vals leafs))
 
   IBKTree
   (find [this s n]
@@ -45,4 +54,6 @@
         (prn (:value this)))
       (doall (map #(find % s n) (map second (filter (fn [[d l]] (<= (- distance n) d (+ distance n))) leafs)))))))
 
-(defn make-tree [s] (->BKTree s {}))
+(defn make-tree
+  ([] (->BKTree nil {}))
+  ([s] (->BKTree s {})))
