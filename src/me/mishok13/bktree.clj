@@ -1,5 +1,4 @@
-(ns me.mishok13.bktree
-  (:refer-clojure :exclude [find]))
+(ns me.mishok13.bktree)
 
 (declare make-tree)
 
@@ -29,7 +28,7 @@
     "Insert node into tree"))
 
 (defprotocol IBKTree
-  (find [this string n]
+  (search [this string n]
     "Perform a fuzzy string search with a distance 'tolerance' of n"))
 
 (defrecord BKTree [^String value leafs]
@@ -48,11 +47,11 @@
     (vals leafs))
 
   IBKTree
-  (find [this s n]
+  (search [this s n]
     (let [distance (levenstein-distance (:value this) s)]
       (when (<= distance n)
-        (prn (:value this)))
-      (doall (map #(find % s n) (map second (filter (fn [[d l]] (<= (- distance n) d (+ distance n))) leafs)))))))
+        (prn "printing" value leafs))
+      (seq (doall (map #(search % s n) (map second (filter (fn [[d l]] (<= (- distance n) d (+ distance n))) leafs))))))))
 
 (defn make-tree
   ([] (->BKTree nil {}))
