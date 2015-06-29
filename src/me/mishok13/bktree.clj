@@ -8,6 +8,7 @@
         n (count t)]
     (get (reduce (fn [acc [j i]]
                    (assoc acc [(inc i) (inc j)]
+    ;; FIXME: rewrite this in a more functional way
                           (if (= (get s i) (get t j))
                             (get acc [i j])
                             (->> [[i (inc j)] [(inc i) j] [i j]]
