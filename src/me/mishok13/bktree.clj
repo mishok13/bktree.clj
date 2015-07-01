@@ -34,11 +34,18 @@
 (defrecord BKTree [^String value leafs]
   ITree
   (insert [this s]
-    (if (nil? value)
+    (cond
       ;; Empty node, can insert immediately
+      (nil? value)
       (assoc this
              :value s
              :leafs {})
+
+      ;; The value is already in the tree, no need to enter it twice
+      (= s value)
+      this
+
+      :else
       (let [distance (levenstein-distance value s)]
         (if-let [leaf (get leafs distance)]
           (assoc-in this [:leafs distance] (insert leaf s))
@@ -47,11 +54,16 @@
     (vals leafs))
 
   IBKTree
-  (search [this s n]
-    (let [distance (levenstein-distance (:value this) s)]
-      (when (<= distance n)
-        (prn "printing" value leafs))
-      (seq (doall (map #(search % s n) (map second (filter (fn [[d l]] (<= (- distance n) d (+ distance n))) leafs))))))))
+  (search [this string tolerate-distance]
+    (let [distance (levenstein-distance value string)
+          matching-leafs (->> leafs
+                              (filter (fn in-range? [[d _]]
+                                        (<= (- distance tolerate-distance) d (+ distance tolerate-distance))))
+                              (map second))
+          matches (seq (mapcat #(search % string tolerate-distance) matching-leafs))]
+      (if (<= distance tolerate-distance)
+        (conj matches value)
+        matches))))
 
 (defn make-tree
   ([] (->BKTree nil {}))
