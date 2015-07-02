@@ -11,7 +11,7 @@
 (defn choose-edit-distance
   "Choose edit distance for a given word"
   [rand-gen word]
-  (->> (count word) (.nextInt rand-gen) (max 1) (min (-> word count (/ 2) int))))
+  (->> (count word) (.nextInt rand-gen) (max 1) (min 4)))
 
 (defn choose-words
   "Choose words from dictionary on a random basis."
